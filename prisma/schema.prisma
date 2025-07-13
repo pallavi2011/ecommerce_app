@@ -14,3 +14,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ClerkUser {
+  id             String   @id @default(cuid())
+  clerkId        String   @unique        // Clerk's user ID
+  email          String   @unique
+  name           String?
+  imageUrl       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  cartItems     CartItem[] @relation("UserCartItems")
+
+  @@map("clerk_users")
+}
+
+model CartItem {
+  id        String     @id @default(cuid())
+  userId    String
+  user      ClerkUser  @relation("UserCartItems", fields: [userId], references: [id])
+  productId String
+  quantity  Int        @default(1)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("cart_items")
+}
+
