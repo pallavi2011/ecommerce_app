@@ -11,16 +11,17 @@ export const syncUserCreation = inngest.createFunction(
     },
     { event: 'clerk/user.created' },
     async ({ event }) => {
-        const { id, first_name, last_name, email_addresses, image_url } = event.data
-        const userData = {
-            id: id,
-            email: email_addresses[0].email_address,
-            name: first_name + ' ' + last_name,
-            imageUrl: image_url
-        }
-        
-        await db.clerkUser.create({
-            data: userData })
+        const { id, email_addresses, first_name, last_name, image_url } = event.data;
+
+    await db.clerkUser.create({
+      data: {
+        id, // Clerk's user ID
+        clerkId: id,
+        email: email_addresses[0]?.email_address,
+        name: [first_name, last_name].filter(Boolean).join(" "),
+        imageUrl: image_url,
+      }
+    });
     }
 )
 
