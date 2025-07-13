@@ -5,12 +5,13 @@ import Link from "next/link"
 import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
 import { useClerk, UserButton } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
-
-  const { isAdmin, router, user } = useAppContext();
+  const router = useRouter();
+  const { isAdmin, user } = useAppContext();
   const { openSignIn } = useClerk()
-
+  console.log(isAdmin)
   return (
     <nav className="flex items-center justify-between px-6 md:px-16 lg:px-32 py-3 border-b border-gray-300 text-gray-700">
      <span className="font-bold text-lg text-orange-500">E<span className="text-black">lectroCart</span></span>
@@ -28,7 +29,7 @@ const Navbar = () => {
           Contact
         </Link>
 
-        {isAdmin && <button onClick={() => router.push('/seller')} className="text-xs border px-4 py-1.5 rounded-full">Seller Dashboard</button>}
+        {isAdmin && <button onClick={() => router.push('/admin')} className="text-xs border px-4 py-1.5 rounded-full">Admin Dashboard</button>}
 
       </div>
 
