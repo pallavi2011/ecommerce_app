@@ -19,7 +19,7 @@ export const syncUserCreation = inngest.createFunction(
             imageUrl: image_url
         }
         
-        await db.user.create({
+        await db.clerkUser.create({
             data: userData })
     }
 )
@@ -39,7 +39,7 @@ export const syncUserUpdation = inngest.createFunction(
             imageUrl: image_url
         }
         
-        await db.user.update({
+        await db.clerkUser.update({
             where: {  id },
             data: userData
         })
@@ -56,7 +56,7 @@ export const syncUserDeletion = inngest.createFunction(
         
         const {id } = event.data
 
-        await db.user.delete({
+        await db.clerkUser.delete({
             where: { id }
         })
     }
