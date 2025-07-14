@@ -5,57 +5,108 @@ import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import UploadImage from "@/components/Upload_Image";
+
+const IMAGEKIT_URL = "https://upload.imagekit.io/api/v1/files/upload";
+const IMAGEKIT_URL_ENDPOINT = process.env.NEXT_PUBLIC_URL_ENDPOINT;
 
 const AddProduct = () => {
+  const { getToken } = useAppContext();
 
-  const { getToken } = useAppContext()
-
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState([null, null, null, null]);
+  const [imageUrls, setImageUrls] = useState([null, null, null, null]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Earphone');
   const [price, setPrice] = useState('');
-  const [offerPrice, setOfferPrice] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  // Get ImageKit auth params from your API
+  const getImageKitAuth = async () => {
+    const res = await fetch("/api/upload-auth");
+    if (!res.ok) throw new Error("Failed to get ImageKit auth");
+    return res.json();
+  };
+
+  // Upload a single file to ImageKit and return the URL
+  const uploadToImageKit = async (file) => {
+    const { signature, expire, token, publicKey } = await getImageKitAuth();
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("fileName", file.name);
+    formData.append("signature", signature);
+    formData.append("expire", expire);
+    formData.append("token", token);
+    formData.append("publicKey", publicKey);
+
+    try {
+      const res = await fetch(IMAGEKIT_URL, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) return data.url;
+      throw new Error(data.message || "ImageKit upload failed");
+    } catch (err) {
+      toast.error("Image upload failed: " + err.message);
+      return null;
+    }
+  };
+
+  // Handle file selection and upload to ImageKit
+  const handleFileChange = async (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadToImageKit(file);
+    setUploading(false);
+
+    if (url) {
+      const updatedFiles = [...files];
+      const updatedUrls = [...imageUrls];
+      updatedFiles[index] = file;
+      updatedUrls[index] = url;
+      setFiles(updatedFiles);
+      setImageUrls(updatedUrls);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData()
-
-    formData.append('name',name)
-    formData.append('description',description)
-    formData.append('category',category)
-    formData.append('price',price)
-    formData.append('offerPrice',offerPrice)
-
-    for (let i = 0; i < files.length; i++) {
-      formData.append('images',files[i])
+    if (imageUrls.filter(Boolean).length === 0) {
+      toast.error("Please upload at least one product image.");
+      return;
     }
 
+    const productData = {
+      name,
+      description,
+      category,
+      price: Number(price),
+      images: imageUrls.filter(Boolean),
+    };
+
     try {
-
-      const token = await getToken()
-
-      const { data } = await axios.post('/api/product/add',formData,{headers:{Authorization:`Bearer ${token}`}})
+      const token = await getToken();
+      const { data } = await axios.post('/api/product/add', productData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       if (data.success) {
-        toast.success(data.message)
-        setFiles([]);
+        toast.success(data.message);
+        setFiles([null, null, null, null]);
+        setImageUrls([null, null, null, null]);
         setName('');
         setDescription('');
         setCategory('Earphone');
         setPrice('');
-        setOfferPrice('');
       } else {
         toast.error(data.message);
       }
-
-      
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-
-
   };
 
   return (
@@ -64,28 +115,29 @@ const AddProduct = () => {
         <div>
           <p className="text-base font-medium">Product Image</p>
           <div className="flex flex-wrap items-center gap-3 mt-2">
-
             {[...Array(4)].map((_, index) => (
-              <label key={index} htmlFor={`image${index}`}>
-                <input onChange={(e) => {
-                  const updatedFiles = [...files];
-                  updatedFiles[index] = e.target.files[0];
-                  setFiles(updatedFiles);
-                }} type="file" id={`image${index}`} hidden />
+              <div key={index}>
+                <UploadImage
+                  onChange={(e) => handleFileChange(e, index)}
+                  id={`image${index}`}
+                />
                 <Image
-                  key={index}
-                  className="max-w-24 cursor-pointer"
-                  src={files[index] ? URL.createObjectURL(files[index]) : assets.upload_area}
+                  className="max-w-24 cursor-pointer mt-2"
+                  src={imageUrls[index] || assets.upload_area}
                   alt=""
                   width={100}
                   height={100}
+                  onClick={() => {
+                    document.getElementById(`image${index}`)?.click();
+                  }}
                 />
-              </label>
+              </div>
             ))}
-
           </div>
+          {uploading && <p className="text-orange-600 mt-2">Uploading...</p>}
         </div>
-        <div className="flex flex-col gap-1 max-w-md">
+         
+         <div className="flex flex-col gap-1 max-w-md">
           <label className="text-base font-medium" htmlFor="product-name">
             Product Name
           </label>
@@ -125,7 +177,7 @@ const AddProduct = () => {
               id="category"
               className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
               onChange={(e) => setCategory(e.target.value)}
-              defaultValue={category}
+              value={category}
             >
               <option value="Earphone">Earphone</option>
               <option value="Headphone">Headphone</option>
@@ -150,26 +202,15 @@ const AddProduct = () => {
               required
             />
           </div>
-          <div className="flex flex-col gap-1 w-32">
-            <label className="text-base font-medium" htmlFor="offer-price">
-              Offer Price
-            </label>
-            <input
-              id="offer-price"
-              type="number"
-              placeholder="0"
-              className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
-              onChange={(e) => setOfferPrice(e.target.value)}
-              value={offerPrice}
-              required
-            />
-          </div>
         </div>
-        <button type="submit" className="px-8 py-2.5 bg-orange-600 text-white font-medium rounded">
-          ADD
+        <button
+          type="submit"
+          className="px-8 py-2.5 bg-orange-600 text-white font-medium rounded cursor-pointer"
+          disabled={uploading}
+        >
+          {uploading ? "Uploading..." : "ADD"}
         </button>
       </form>
-      {/* <Footer /> */}
     </div>
   );
 };

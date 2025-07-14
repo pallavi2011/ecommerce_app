@@ -39,3 +39,14 @@ model CartItem {
   @@map("cart_items")
 }
 
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  price       Float
+  images      String[] // Array of image URLs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
