@@ -24,6 +24,7 @@ model ClerkUser {
   updatedAt      DateTime @updatedAt
   addresses Address[]  
   cartItems     CartItem[] @relation("UserCartItems")
+  orders        Order[]    // Relation to orders
 
   @@map("clerk_users")
 }
@@ -41,14 +42,15 @@ model CartItem {
 }
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
   description String
   category    String
   price       Float
-  images      String[] // Array of image URLs
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  images      String[]    // Array of image URLs
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[] // Relation to order items
 }
 
 model Address {
@@ -63,6 +65,35 @@ model Address {
   state       String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  orders      Order[]   @relation("AddressOrders")
 
   @@map("addresses")
+}
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        ClerkUser   @relation(fields: [userId], references: [id])
+  addressId   String
+  address     Address     @relation(fields: [addressId], references: [id], name: "AddressOrders")
+  items       OrderItem[] // Relation to order items
+  total       Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id]) 
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_items")
 }

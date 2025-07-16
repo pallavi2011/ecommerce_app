@@ -47,7 +47,7 @@ const OrderSummary = () => {
         return toast.error('Please select an address')
       }
 
-      let cartItemsArray = Object.keys(cartItems).map((key) => ({product:key, quantity:cartItems[key]}))
+      let cartItemsArray = Object.keys(cartItems).map((key) => ({productId:key, quantity:cartItems[key]}))
       cartItemsArray = cartItemsArray.filter(item => item.quantity > 0)
 
       if (cartItemsArray.length === 0) {
@@ -57,7 +57,7 @@ const OrderSummary = () => {
       const token = await getToken()
 
       const { data } = await axios.post('/api/order/create',{
-        address: selectedAddress._id,
+        address: selectedAddress.id,
         items: cartItemsArray
       },{
         headers: {Authorization:`Bearer ${token}`}
@@ -66,7 +66,7 @@ const OrderSummary = () => {
       if (data.success) {
         toast.success(data.message)
         setCartItems({})
-        router.push('/order-placed')
+        router.push('/order-completed')
       } else {
         toast.error(data.message)
       }
