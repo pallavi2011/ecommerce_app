@@ -3,6 +3,10 @@ import Navbar from "@/components/Navbar";
 import Header from "@/components/Header";
 import React from "react";
 import HomeProducts from "@/components/Products";
+import FeaturedProduct from "@/components/FeaturedProduct";
+import Banner from "@/components/Banner";
+import NewsLetter from "@/components/Newsletter";
+import Footer from "@/components/Footer";
 
 const Home = () => {
   return (
@@ -11,7 +15,11 @@ const Home = () => {
      <div className="px-6 md:px-16 lg:px-32">
       <Header/>
       <HomeProducts/>
-     </div>
+       <FeaturedProduct />
+        <Banner />
+        <NewsLetter />
+      </div>
+      <Footer />
     </>
   );
 }
