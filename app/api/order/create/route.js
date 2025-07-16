@@ -68,6 +68,8 @@ export async function POST(request) {
             data: { cartItems: {} }
         });
 
+        await db.cartItem.deleteMany({ where: { userId } });
+
         return NextResponse.json({ success: true, message: 'Order Placed', order });
 
     } catch (error) {
