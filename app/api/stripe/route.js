@@ -31,9 +31,10 @@ export async function POST(request){
                     data: { cartItems: {} }
                 })
 
-                await db.cart.deleteMany({
+                await db.cartItem.deleteMany({
                     where: { userId }
                 })
+                console.log('Order updated and cart cleared for user:', userId);
             }else{
                 await db.order.delete({
                     where: { id: orderId },

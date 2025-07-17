@@ -91,6 +91,11 @@ export async function POST(request) {
 
                    const url = session.url;
 
+
+                   await db.cartItem.deleteMany({
+                          where: { userId }
+                   })
+
                    return NextResponse.json({ success: true, url });
                 }
             
