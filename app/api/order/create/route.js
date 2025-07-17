@@ -35,6 +35,8 @@ export async function POST(request) {
                     userId,
                     addressId: address,
                     total: amount + Math.floor(amount * 0.02),
+                    paymentType: "COD",
+                    isPaid: false, 
                     items: {
                     create: items.map(item => {
                         const productId = item.productId || (item.product && item.product.id);
@@ -58,7 +60,8 @@ export async function POST(request) {
                 address,
                 items,
                 amount: order.total,
-                date: Date.now()
+                date: Date.now(),
+                paymentType: 'COD',
             }
         });
 

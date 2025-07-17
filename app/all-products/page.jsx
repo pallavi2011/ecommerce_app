@@ -7,6 +7,7 @@ import { useAppContext } from "@/context/AppContext";
 const AllProducts = () => {
 
     const { products } = useAppContext();
+    console.log(products);
 
     return (
         <>
