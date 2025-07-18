@@ -6,6 +6,16 @@ import { useAppContext } from "@/context/AppContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import UploadImage from "@/components/Upload_Image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 const IMAGEKIT_URL = "https://upload.imagekit.io/api/v1/files/upload";
 const IMAGEKIT_URL_ENDPOINT = process.env.NEXT_PUBLIC_URL_ENDPOINT;
@@ -20,6 +30,7 @@ const AddProduct = () => {
   const [category, setCategory] = useState('Earphone');
   const [price, setPrice] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [tab, setTab] = useState('Manual Entry');
 
   // Get ImageKit auth params from your API
   const getImageKitAuth = async () => {
@@ -53,6 +64,41 @@ const AddProduct = () => {
     }
   };
 
+  // Handle file upload to ai
+ const handleFileChangeForAI = async (e, index) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setUploading(true);
+  const url = await uploadToImageKit(file);
+  setUploading(false);
+
+  if (url) {
+    const updatedFiles = [...files];
+    const updatedUrls = [...imageUrls];
+    updatedFiles[index] = file;
+    updatedUrls[index] = url;
+    setFiles(updatedFiles);
+    setImageUrls(updatedUrls);
+
+    const token = await getToken();
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const { data } = await axios.post('/api/product/ai-search', formData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (data.success){
+      console.log(data.data);
+      setName(data.data.brand);
+      setDescription(data.data.description);
+      setCategory(data.data.category);
+     const numbers = data.data.price.match(/\d+/g);
+      setPrice(numbers ? numbers[0] : "");
+      setImageUrls(updatedUrls); // <-- now updatedUrls is defined!
+    }
+  }
+};
   // Handle file selection and upload to ImageKit
   const handleFileChange = async (e, index) => {
     const file = e.target.files[0];
@@ -69,6 +115,8 @@ const AddProduct = () => {
       setFiles(updatedFiles);
       setImageUrls(updatedUrls);
     }
+
+
   };
 
   const handleSubmit = async (e) => {
@@ -111,7 +159,13 @@ const AddProduct = () => {
 
   return (
     <div className="flex-1 min-h-screen flex flex-col justify-between">
-      <form onSubmit={handleSubmit} className="md:p-10 p-4 space-y-5 max-w-lg">
+      <Tabs defaultValue="ai" className="mt-6" value={tab} onValueChange={setTab}>
+  <TabsList className="grid w-full grid-cols-2">
+    <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+    <TabsTrigger value="ai">AI Upload</TabsTrigger>
+  </TabsList>
+  <TabsContent value="manual"> 
+    <form onSubmit={handleSubmit} className="md:p-10 p-4 space-y-5 max-w-lg">
         <div>
           <p className="text-base font-medium">Product Image</p>
           <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -211,6 +265,45 @@ const AddProduct = () => {
           {uploading ? "Uploading..." : "ADD"}
         </button>
       </form>
+      </TabsContent>
+  <TabsContent value="ai">
+          <Card className="max-w-lg mx-auto mt-6">
+            <CardHeader className='text-center'>
+              
+              <CardDescription>
+                Upload an image of the product and let AI extract the details.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center items-center justify-center">
+              <form  className="space-y-6">
+               <div>
+                <p className="text-base font-medium">Product Image</p>
+                <div className="flex flex-wrap items-center gap-3 mt-2">
+           
+              <div className="flex flex-col items-center justify-center w-full">
+                <UploadImage onChange={(e)=>handleFileChangeForAI(e, 0)} id="image0" />
+                <Image
+                  className="max-w-24 cursor-pointer mt-2"
+                  src={imageUrls[0] || assets.upload_area}
+                  alt=""
+                  width={100}
+                  height={100}
+                  onClick={() => {
+                    document.getElementById("image0")?.click();
+                  }}
+                />
+              </div>
+          
+          </div>
+          {uploading && <p className="text-orange-600 mt-2">Uploading...</p>}
+        </div>
+              
+              </form>
+            </CardContent>
+          </Card>
+  </TabsContent>
+</Tabs>
+     
     </div>
   );
 };
