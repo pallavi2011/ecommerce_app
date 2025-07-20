@@ -9,7 +9,7 @@ A modern, full-stack e-commerce platform built with Next.js 14, featuring AI-pow
 - **Smart Search**: Search products with filters and sorting options
 - **Shopping Cart**: Add/remove items with persistent cart across sessions
 - **User Authentication**: Secure login/signup with Clerk
-- **Order Management**: Place orders, track status, and view order history
+- **Order Management**: Place orders and view order history
 - **Multiple Payment Options**: Cash on Delivery (COD) and Stripe integration
 - **Address Management**: Save and manage multiple delivery addresses
 
