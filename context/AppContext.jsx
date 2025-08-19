@@ -15,7 +15,7 @@ export const useAppContext = () => {
 
 export const AppContextProvider = (props) => {
     const { user } = useUser()
-     const [isAdmin, setIsAdmin] = useState(false)
+     const [isAdmin, setIsAdmin] = useState(true)
      const {getToken} = useAuth()
      const [userData, setUserData] = useState(null)
      const [cartItems, setCartItems] = useState({})
