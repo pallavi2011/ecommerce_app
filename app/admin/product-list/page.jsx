@@ -11,9 +11,9 @@ import toast from "react-hot-toast";
 
 const ProductList = () => {
 
-  const { router, getToken, user } = useAppContext()
+  const { router, getToken, user, products } = useAppContext()
 
-  const [products, setProducts] = useState([])
+  const [products1, setProducts1] = useState([])
   const [loading, setLoading] = useState(true)
 
   const fetchAdminProduct = async () => {
@@ -24,7 +24,7 @@ const ProductList = () => {
       const { data } = await axios.get('/api/product/product-list', { headers: { Authorization: `Bearer ${token}` } })
 
       if (data.success) {
-        setProducts(data.products)
+        setProducts1(data.products)
         console.log(data.products)
         setLoading(false)
       } else {
@@ -44,7 +44,7 @@ const ProductList = () => {
 
   return (
     <div className="flex-1 min-h-screen flex flex-col justify-between">
-      {loading ? <Loading /> : <div className="w-full md:p-10 p-4">
+      <div className="w-full md:p-10 p-4"> 
         <h2 className="pb-4 text-lg font-medium">All Product</h2>
         <div className="flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20">
           <table className=" table-fixed w-full overflow-hidden">
@@ -79,7 +79,7 @@ const ProductList = () => {
                   <td className="px-4 py-3">${product.price}</td>
                   <td className="px-4 py-3 max-sm:hidden">
                     <button onClick={() => router.push(`/product/${product._id}`)} className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-orange-600 text-white rounded-md">
-                      <span className="hidden md:block">Visit</span>
+                      <span className="hidden md:block">Delete</span>
                       <Image
                         className="h-3.5"
                         src={assets.redirect_icon}
@@ -92,7 +92,7 @@ const ProductList = () => {
             </tbody>
           </table>
         </div>
-      </div>}
+      </div>
       <Footer />
     </div>
   );
